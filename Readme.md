@@ -251,18 +251,23 @@ fails assumed to be plaintext strings.
 
 ### Authentication options
 
-MySQL 8.0 introduces a new default authentication plugin - [`caching_sha2_password`](https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html).
-This is a breaking change from MySQL 5.7 wherein [`mysql_native_password`](https://dev.mysql.com/doc/refman/8.0/en/native-pluggable-authentication.html) was used by default.
+This driver supports multiple MySQL authentication methods:
 
-The initial handshake for this plugin will only work if the connection is secure or the server
-uses a valid RSA public key for the given type of authentication (both default MySQL 8 settings).
-By default, if the connection is not secure, the client will fetch the public key from the server
-and use it (alongside a server-generated nonce) to encrypt the password.
+* [`caching_sha2_password`](https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html) - The default authentication method since MySQL 8.0
+* [`mysql_native_password`](https://dev.mysql.com/doc/refman/8.0/en/native-pluggable-authentication.html) - Introduced in MySQL 4.1, default method from MySQL 5.5 to MySQL 5.7
+* [`sha256_password`](https://dev.mysql.com/doc/refman/5.7/en/sha256-pluggable-authentication.html) - SHA-256 authentication (introduced in MySQL 5.6, deprecated since MySQL 8.0.16)
+* `mysql_old_password` - Pre-4.1 authentication (insecure, requires opt-in via `insecureAuth` option)
 
-After a successful initial handshake, any subsequent handshakes will always work, until the
-server shuts down or the password is somehow removed from the server authentication cache.
+The initial handshake for SHA-256 based authentication methods (`caching_sha2_password` and `sha256_password`)
+will only work if the connection is secure or the server uses a valid RSA public key for the given type of
+authentication (both default MySQL 8 settings). By default, if the connection is not secure, the client will
+fetch the public key from the server and use it (alongside a server-generated nonce) to encrypt the password.
 
-The default connection options provide compatibility with both MySQL 5.7 and MySQL 8 servers.
+For `caching_sha2_password`, after a successful initial handshake, any subsequent handshakes will always work,
+until the server shuts down or the password is somehow removed from the server authentication cache.
+
+The default connection options provide compatibility with MySQL 5.7 and MySQL 8 servers, as well as
+`sha256_password` authentication.
 
 ```js
 // default options
